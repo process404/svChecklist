@@ -71,19 +71,32 @@
             appKey = storedKey;
             try {
                 const fbData = await getDataByKey();
-                if (fbData) {
-                    checklistItems = fbData.checklistItems || [];
-                    localStorage.setItem("checklistItems", JSON.stringify(checklistItems));
-                    console.log("Loaded data for key:", storedKey);
+                const localData = JSON.parse(localStorage.getItem("checklistItems")) || [];
+                
+                if (fbData && fbData.checklistItems) {
+                    // Even if localData is empty, use Firestore data.
+                    const mergedData = [
+                        ...localData,
+                        ...fbData.checklistItems.filter(
+                            item => !localData.some(localItem => localItem.id === item.id)
+                        )
+                    ];
+                    checklistItems = mergedData;
+                    // Save merged data back to localStorage to persist
+                    localStorage.setItem("checklistItems", JSON.stringify(mergedData));
+                    console.log("Loaded and merged data for key:", storedKey);
                 } else {
-                    console.warn("Document doesn't exist for the stored key; generating a new key.");
-                    await generateNewAppKey();
+                    // Document exists? If fbData is null but the key is valid, do not generate a new key.
+                    // Instead, if localData is present, write it to Firestore, otherwise write an empty array.
+                    await saveDataToKey({ checklistItems: localData });
+                    console.log("No checklist found in Firestore; initializing with localData or empty list.");
                 }
             } catch (e) {
                 console.error("Error loading Firestore data with stored key:", e);
-                await generateNewAppKey();
+                // Do not generate a new key here if you plan to share the key; handle the error gracefully.
             }
         } else {
+            // Only generate a new key if there’s really no key stored locally.
             await generateNewAppKey();
         }
     });
