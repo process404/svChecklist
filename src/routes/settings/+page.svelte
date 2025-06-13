@@ -51,12 +51,24 @@
         }
     }
 
-    async function confirmChange(){
+    async function confirmChange() {
+        const oldKey = appKey;
+        let oldData = null;
+        if (oldKey && oldKey !== newKeyInput) {
+            oldData = await getDataByKey(oldKey);
+        }
+
         localStorage.setItem('appKey', newKeyInput);
         appKey = newKeyInput;
         warningModal = false;
         newKeyInput = "";
-        await deleteDataByKey(appKey);
+
+        if (oldData) {
+            await saveDataToKey(appKey, oldData);
+            await deleteDataByKey(oldKey);
+        } else {
+            await deleteDataByKey(appKey);
+        }
     }
 
     onMount(() => {
@@ -93,7 +105,7 @@
 
 <Modal title="Warning" bind:open={warningModal} class="max-h-none relative" bodyClass="overflow-y-auto max-h-none relative">
     <div class="p-6">
-        <p class="text-gray-700 dark:text-gray-300">You are about to change the app key, This is not recommended unless you are linking two devices together. Any data that you have stored on the old app key will be deleted and inaccessible once you change your app key. </p>
+        <p class="text-gray-700 dark:text-gray-300">You are about to change the app key, This is not recommended unless you are linking two devices together. Any data stored on the database under this key will be deleted, while data stored locally on the device will be carried over to the new key. </p>
     </div>
     <div class="flex justify-end p-4 gap-4">
         <Button color="light" onclick={() => warningModal = false}>Cancel</Button>
