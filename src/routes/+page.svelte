@@ -191,7 +191,7 @@
                     <div class="text-center text-gray-500 dark:text-gray-400">
                         <h2 class="text-2xl font-bold mb-4">No items found</h2>
                         <p class="mb-4">Start by adding your first item!</p>
-                        <Button on:click={openModalAdd} color="primary" class="w-full max-w-xs">
+                        <Button onclick={openModalAdd} color="primary" class="w-full max-w-xs">
                             <CirclePlusSolid class="mr-2" /> Add Item
                         </Button>
                     </div>
@@ -203,7 +203,7 @@
                             {#each items as item (item.id)}
                                 <Card class="p-4 sm:p-6 md:p-8 w-full max-w-none mt-4 first:mt-0 hover:cursor-pointer">
                                     <!-- svelte-ignore component_name_lowercase -->
-                                    <button type="button" class="flex items-center gap-5 flex-wrap" on:click|self={() => openModalEdit(item)}>
+                                    <button type="button" class="flex items-center gap-5 flex-wrap" onclick={(e) => { if(e.currentTarget === e.target) openModalEdit(item); }}>
                                         <Checkbox
                                             bind:checked={item.checked}
                                             onchange={(e) => {
@@ -319,7 +319,7 @@
         </BottomNavItem>
         <Tooltip arrow={false}>Home</Tooltip> -->
         <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <div type="button" class="flex items-center justify-center" on:click={() => openModalAdd()}>
+        <div type="button" class="flex items-center justify-center" onclick={() => openModalAdd()}>
             <BottomNavItem btnName="Create new item" appBtnPosition="middle" btnClass="inline-flex items-center justify-center w-10 h-10 font-medium bg-primary-600 rounded-full hover:bg-primary-700 group focus:ring-4 focus:ring-primary-300 focus:outline-hidden dark:focus:ring-primary-800">
             <CirclePlusSolid class="text-white" />
             </BottomNavItem>
