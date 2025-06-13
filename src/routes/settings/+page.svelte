@@ -25,13 +25,14 @@
     function handleKeyChange() {
         if (isValidKey(newKeyInput)) {
             warningModal = true;
+            error = "";
         } else {
             error = "Invalid key format. Must be 64 hex characters.";
         }
     }
 
     function handleRegenerate() {
-        newKeyInput = generateRandomHexKey(32);
+        newKeyInput = generateRandomHexKey(32); 
         error = "";
     }
 
@@ -48,31 +49,29 @@
 
     async function confirmChange() {
         const oldKey = appKey;
-        let oldData = null;
-        if (oldKey && oldKey !== newKeyInput) {
-            oldData = await getDataByKey(oldKey);
-        }
-
+        let oldData = await getDataByKey(oldKey);
+        
         localStorage.setItem('appKey', newKeyInput);
         appKey = newKeyInput;
         warningModal = false;
         newKeyInput = "";
 
         if (oldData) {
-            await saveDataToKey(oldData);
-            await deleteDataByKey(oldKey);
+            const newData = { ...oldData, appKey: appKey };
+            await saveDataToKey(newData);         
+            await deleteDataByKey(oldKey);           
         } else {
-
-            await deleteDataByKey(appKey);
+            await deleteDataByKey(appKey).catch(e => console.log("No document to delete for new key.", e));
         }
     }
 
     onMount(() => {
         const stored = localStorage.getItem('appKey');
-        if (stored) appKey = stored;
+        if (stored) {
+            appKey = stored;
+        }
     });
 
-    // PWA stuff
     onMount(async () => {
         if (pwaInfo) {
             const { registerSW } = await import('virtual:pwa-register');
@@ -91,6 +90,10 @@
     $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : '';
 </script>
 
+<svelte:head>
+    {@html webManifest}
+</svelte:head>
+
 <div class="w-full flex items-center justify-center"> 
     <div class="max-w-[1280px] w-full">
         <h1 class="text-white text-3xl p-6 font-medium">Settings</h1>
@@ -108,9 +111,9 @@
                     <div class="text-red-500 text-sm mb-2">{error}</div>
                 {/if}
                 <div class="flex gap-2">
-                    <Button on:click={handleKeyChange} color="primary">Set Key</Button>
-                    <Button on:click={handleRegenerate} color="secondary">Regenerate</Button>
-                    <Button on:click={undoChanges} color="light">Undo Changes</Button>
+                    <Button onclick={handleKeyChange} color="primary">Set Key</Button>
+                    <Button onclick={handleRegenerate} color="secondary">Regenerate</Button>
+                    <Button onclick={undoChanges} color="light">Undo Changes</Button>
                 </div>
             </Card>
         </div>
@@ -126,8 +129,8 @@
         </p>
     </div>
     <div class="flex justify-end p-4 gap-4">
-        <Button color="light" on:click={() => warningModal = false}>Cancel</Button>
-        <Button color="primary" on:click={confirmChange}>Confirm</Button>
+        <Button onclick={() => warningModal = false} color="light">Cancel</Button>
+        <Button onclick={confirmChange} color="primary">Confirm</Button>
     </div>
 </Modal>
 

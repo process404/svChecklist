@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCtffP-iNYgkLOZajszJivlXYDMPAvxC1U",
@@ -30,37 +30,33 @@ function getFirebaseApp() {
 
 export { getFirebaseApp };
 
-export async function saveDataToKey(data) {
-    const key = localStorage.getItem("appKey");
-    if (!key) {
-        throw new Error("No app key found in localStorage.");
-    }
+export async function saveDataToKey(data, passedKey = "") {
+    const key = passedKey || localStorage.getItem("appKey");
+    if (!key) throw new Error("No app key found in localStorage.");
     const db = getFirestore(getFirebaseApp());
-    // Write to the document with ID == key and include the appKey field
     const docRef = doc(db, "apps", key);
     await setDoc(docRef, { ...data, appKey: key }, { merge: true });
 }
   
-export async function getDataByKey() {
-    const key = localStorage.getItem("appKey");
-    if (!key) {
-        throw new Error("No app key found in localStorage.");
-    }
+export async function getDataByKey(passedKey = "") {
+    const key = passedKey || localStorage.getItem("appKey");
+    if (!key) throw new Error("No app key found in localStorage.");
     const db = getFirestore(getFirebaseApp());
     const docRef = doc(db, "apps", key);
-    const snapshot = await (await import("firebase/firestore")).getDoc(docRef);
-    if (!snapshot.exists()) {
-        return null;
+    try {
+        const snapshot = await getDoc(docRef);
+        if (!snapshot.exists()) return null;
+        return snapshot.data();
+    } catch(e) {
+        console.error("Error reading document for key", key, e);
+        return null; 
     }
-    return snapshot.data();
 }
 
-export async function deleteDataByKey() {
-    const key = localStorage.getItem("appKey");
-    if (!key) {
-        throw new Error("No app key found in localStorage.");
-    }
+export async function deleteDataByKey(passedKey = "") {
+    const key = passedKey || localStorage.getItem("appKey");
+    if (!key) throw new Error("No app key found in localStorage.");
     const db = getFirestore(getFirebaseApp());
     const docRef = doc(db, "apps", key);
-    await (await import("firebase/firestore")).deleteDoc(docRef);
+    await deleteDoc(docRef);
 }
