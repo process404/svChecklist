@@ -1,9 +1,5 @@
-
-
 <svelte:head>
-  {#if browser}
-    {@html pwaInfo ? pwaInfo.webManifest.linkTag : ""}
-  {/if}
+    {@html webManifest}
 </svelte:head>
 
 <script>
