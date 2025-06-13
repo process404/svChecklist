@@ -16,7 +16,6 @@
     let modalName = '';
     let modalDescription = '';
 
-    // Local app key and its management
     let appKey = "";
     
     function generateRandomHexKey(bytesCount = 32) {
@@ -159,7 +158,7 @@
     <div class="max-w-[1280px] w-full">
         <!-- <h1 class="text-white text-3xl p-6 font-medium">Your Checklist</h1> -->
         <div class="pl-4 pr-4 w-full overflow-y-auto mt-8" style="padding-bottom: 160px;"> 
-            {#if grouped.length == 0}
+            {#if Object.keys(grouped).length === 0}
                 <div class="text-center text-gray-500 dark:text-gray-400">
                     <h2 class="text-2xl font-bold mb-4">No items found</h2>
                     <p class="mb-4">Start by adding your first item!</p>
