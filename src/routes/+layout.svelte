@@ -16,6 +16,4 @@
   <ReloadPrompt />
 {/await}
 
-<main>
-	{@render children()}
-</main>
+{@render children()}
