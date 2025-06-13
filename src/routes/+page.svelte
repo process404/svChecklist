@@ -262,7 +262,7 @@
                                     if (b.dueDate) return 1;
                                     return 0;
                                 }) as item (item.id)}
-                                <Card class={`p-4 sm:p-6 md:p-8 w-full max-w-none mt-4 first:mt-0 hover:cursor-pointer border-2 ${
+                                <Card class={`p-2 sm:p-3 md:p-6 w-full max-w-none mt-4 first:mt-0 hover:cursor-pointer border-2 ${
                                     item.checked
                                         ? '!border-green-500'
                                         : (item.dueDate && new Date(item.dueDate) < new Date())
@@ -282,7 +282,7 @@
                                                 );
                                                 saveToLocalStorage();
                                             }}
-                                            class="mb-2 w-12 h-12 text-5xl" 
+                                            class="w-12 h-12 text-5xl p-0" 
                                         />
                                         <h5 class="sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white text-left truncate block">
                                             {item.title} 
@@ -334,8 +334,8 @@
                                         </span>
                                     </div>
                                     {#if item.description !== ''}
-                                        <hr class="mb-4 border-gray-700 sm:hidden mt-4">
-                                        <p class="mb-3 leading-tight font-normal text-gray-700 dark:text-gray-400">{item.description}</p>
+                                        <hr class="mb-4 border-gray-700 mt-4">
+                                        <p class="pl-2 pb-2 pr-2 leading-tight font-normal text-gray-700 dark:text-gray-400">{item.description}</p>
                                     {/if}
                                 </Card>
                             {/each}
