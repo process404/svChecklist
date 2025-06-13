@@ -91,7 +91,6 @@
                 console.error("Error loading Firestore data with stored key:", e);
             }
         } else {
-            // Only generate a new key if there’s really no key stored locally.
             await generateNewAppKey();
         }
     });
@@ -135,7 +134,8 @@
                     title: modalName,
                     description: modalDescription,
                     dueDate: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
-                    group: selectedGroup === '__new__' ? newGroupName : selectedGroup
+                    group: selectedGroup === '__new__' ? newGroupName : selectedGroup,
+                    pinned: item.pinned 
                 }
                 : item
         );
@@ -148,10 +148,7 @@
         }
 
         defaultModal = false;
-        selectedDate = null;
-        selectedGroup = null;
-        modalName = '';
-        modalDescription = '';
+        // reset modal fields…
     }
 
     const handleDelete = () => {
@@ -175,7 +172,8 @@
                 description: modalDescription,
                 checked: false,
                 dueDate: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
-                group: selectedGroup === '__new__' ? newGroupName : selectedGroup
+                group: selectedGroup === '__new__' ? newGroupName : selectedGroup,
+                pinned: false
             }
         ];
         saveToLocalStorage();
@@ -186,7 +184,22 @@
         modalDescription = '';
     }
 
-    $: grouped = checklistItems.reduce((acc, item) => {
+    let sortBy = "dueDate"; 
+    
+    $: sortedChecklist = [...checklistItems].sort((a, b) => {
+        if(sortBy === "dueDate") {
+            // Handle missing dates
+            if (!a.dueDate) return 1;
+            if (!b.dueDate) return -1;
+            return new Date(a.dueDate) - new Date(b.dueDate);
+        }
+        if(sortBy === "title") {
+            return a.title.localeCompare(b.title);
+        }
+        return 0;
+    });
+
+    $: grouped = sortedChecklist.reduce((acc, item) => {
         (acc[item.group] = acc[item.group] || []).push(item);
         return acc;
     }, {});
@@ -236,8 +249,19 @@
                 <Accordion>
                     {#each Object.entries(grouped) as [group, items]}
                         <AccordionItem transitionType={blur} transitionParams={{ duration: 300 }}>
-                            {#snippet header()}{group}{/snippet}
-                            {#each items as item (item.id)}
+                            {#snippet header()}{group} ({items.length} items){/snippet}
+                            {#each items
+                                .slice()
+                                .sort((a, b) => {
+                                    if (a.pinned && !b.pinned) return -1;
+                                    if (!a.pinned && b.pinned) return 1;
+                                    if (a.dueDate && b.dueDate) {
+                                        return new Date(a.dueDate) - new Date(b.dueDate);
+                                    }
+                                    if (a.dueDate) return -1;
+                                    if (b.dueDate) return 1;
+                                    return 0;
+                                }) as item (item.id)}
                                 <Card class={`p-4 sm:p-6 md:p-8 w-full max-w-none mt-4 first:mt-0 hover:cursor-pointer border-2 ${
                                     item.checked
                                         ? '!border-green-500'
@@ -351,15 +375,32 @@
             <Input type="text" placeholder="New group name" bind:value={newGroupName} />
             {/if}
         </Label>
-        <div class="flex gap-4">
-            {#if modalMode === 'edit'}
+        {#if modalMode === 'edit'}
+            <div class="flex gap-4">
                 <Button class="mt-4 w-full" onclick={handleEdit}>Edit</Button>
                 <Button color="red" class="mt-4 w-full" onclick={handleDelete}>Delete</Button>
-            {/if}
-            {#if modalMode === 'add'}
-                <Button class="mt-4 w-full" onclick={handleAdd}>Add</Button>
-            {/if}
-        </div>
+                <Button
+                    color="light"
+                    class="mt-4 w-full"
+                    onclick={async () => {
+                        checklistItems = checklistItems.map(item => 
+                            item.id === editingId ? { ...item, pinned: !item.pinned } : item
+                        );
+                        await saveToLocalStorage();
+                        console.log("Toggled pin for item:", modalName);
+                        defaultModal = false;
+                    }}>
+                    {#if checklistItems.find(item => item.id === editingId && item.pinned)}
+                        Unpin Item
+                    {:else}
+                        Pin to Top
+                    {/if}
+                </Button>
+            </div>
+        {/if}
+        {#if modalMode === 'add'}
+            <Button class="mt-4 w-full" onclick={handleAdd}>Add</Button>
+        {/if}
     </Modal>
     
     

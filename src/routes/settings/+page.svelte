@@ -81,7 +81,6 @@
                 const localData = JSON.parse(localStorage.getItem("checklistItems")) || [];
                 
                 if (fbData) {
-                    // Merge Firestore data with local data
                     const mergedData = [
                         ...localData,
                         ...fbData.checklistItems.filter(
@@ -120,6 +119,65 @@
     });
     
     $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : '';
+
+    function exportDataJSON() {
+        const data = localStorage.getItem("checklistItems");
+        if (!data) {
+            alert("No checklist data to export.");
+            return;
+        }
+        const blob = new Blob([data], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "checklist-data.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function exportDataText() {
+        const data = localStorage.getItem("checklistItems");
+        if (!data) {
+            alert("No checklist data to export.");
+            return;
+        }
+        let items;
+        try {
+            items = JSON.parse(data);
+        } catch (e) {
+            alert("Stored data is not valid JSON.");
+            return;
+        }
+  
+        const grouped = items.reduce((acc, item) => {
+            const groupName = item.group && item.group.trim() ? item.group : "Ungrouped";
+            if (!acc[groupName]) acc[groupName] = [];
+            acc[groupName].push(item);
+            return acc;
+        }, {});
+  
+        const sortedGroupNames = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+  
+        let textOutput = "Checklist Items:\n\n";
+        sortedGroupNames.forEach(groupName => {
+          const sortedItems = grouped[groupName].sort((a, b) => a.id - b.id);
+          textOutput += `Group: ${groupName}\n`;
+          sortedItems.forEach((item, i) => {
+            textOutput += `  ${i + 1}. Title: ${item.title || "N/A"}\n`;
+            textOutput += `       Description: ${item.description || "N/A"}\n`;
+            textOutput += `       Due Date: ${item.dueDate || "N/A"}\n`;
+          });
+          textOutput += "\n";
+        });
+  
+        const blob = new Blob([textOutput], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "checklist-data.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 </script>
 
 <svelte:head>
@@ -130,7 +188,7 @@
     <div class="w-full flex items-center justify-center"> 
         <div class="max-w-[1280px] w-full">
             <h1 class="text-white text-3xl p-6 font-medium">Settings</h1>
-            <div class="pl-4 pr-4 w-full overflow-y-auto mt-8 flex items-center justify-center" style="padding-bottom: 160px;"> 
+            <div class="pl-4 pr-4 w-full overflow-y-auto mt-8 flex items-center justify-center"> 
                 <Card class="mb-8 w-full p-4 max-w-[700px]">
                     <Label for="appKey" class="mb-2 block">App Key</Label>
                     <Input id="appKey" value={appKey} readonly class="mb-2" />
@@ -148,6 +206,16 @@
                         <Button onclick={handleRegenerate} color="secondary">Regenerate</Button>
                         <Button onclick={undoChanges} color="light">Undo Changes</Button>
                     </div>
+                </Card>
+            </div>
+            <div class="pl-4 pr-4 w-full overflow-y-auto mt-8 flex items-center justify-center" style="padding-bottom: 160px;"> 
+                <Card class="flex gap-4 mt-4 p-8 max-w-[700px] w-full">
+                    <Button onclick={exportDataJSON} color="primary">Export Data as JSON</Button>
+                    <Button onclick={exportDataText} color="secondary">Export Data as Text</Button>
+                    <Button onclick={() => document.getElementById('importFile').click()} color="light">
+                        Import Data
+                    </Button>
+                    <input id="importFile" type="file" accept="application/json" class="hidden" on:change={importData} />
                 </Card>
             </div>
         </div>
@@ -173,4 +241,7 @@
         </BottomNavItem>
         <Tooltip arrow={false}>Settings</Tooltip>
     </BottomNav>
+
+    
+
 </main>
