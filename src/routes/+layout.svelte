@@ -9,7 +9,7 @@
 </script>
 
 <svelte:head> 
- 	{@html webManifestLink} 
+	{@html webManifestLink} 
 </svelte:head>
 
 {#await import('$lib/ReloadPrompt.svelte') then { default: ReloadPrompt}}

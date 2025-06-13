@@ -182,10 +182,6 @@
 
 </script>
 
-<svelte:head>
-    {@html webManifest}
-</svelte:head>
-
 <div class="w-full flex items-center justify-center"> 
     <div class="max-w-[1280px] w-full">
         <!-- <h1 class="text-white text-3xl p-6 font-medium">Your Checklist</h1> -->
