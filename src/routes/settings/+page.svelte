@@ -73,6 +73,38 @@
     });
 
     onMount(async () => {
+        const storedKey = localStorage.getItem("appKey");
+        if (storedKey) {
+            appKey = storedKey;
+            try {
+                const fbData = await getDataByKey();
+                const localData = JSON.parse(localStorage.getItem("checklistItems")) || [];
+                
+                if (fbData) {
+                    // Merge Firestore data with local data
+                    const mergedData = [
+                        ...localData,
+                        ...fbData.checklistItems.filter(
+                            item => !localData.some(localItem => localItem.id === item.id)
+                        )
+                    ];
+                    checklistItems = mergedData;
+                    localStorage.setItem("checklistItems", JSON.stringify(mergedData));
+                    console.log("Loaded and merged data for key:", storedKey);
+                } else {
+                    console.warn("Document doesn't exist for the stored key; generating a new key.");
+                    await generateNewAppKey();
+                }
+            } catch (e) {
+                console.error("Error loading Firestore data with stored key:", e);
+                await generateNewAppKey();
+            }
+        } else {
+            await generateNewAppKey();
+        }
+    });
+    
+    onMount(async () => {
         if (pwaInfo) {
             const { registerSW } = await import('virtual:pwa-register');
             registerSW({
