@@ -23,6 +23,7 @@
     let modalDescription = '';
 
     let appKey = "";
+    let editingId = null; 
     
     function generateRandomHexKey(bytesCount = 32) {
         const randomBytes = new Uint8Array(bytesCount);
@@ -95,6 +96,7 @@
     function openModalEdit(item) {
         modalMode = 'edit';
         defaultModal = true;
+        editingId = item.id;
         modalName = item.title;
         modalDescription = item.description;
         selectedDate = item.dueDate ? new Date(item.dueDate) : null;
@@ -110,20 +112,36 @@
         selectedGroup = '';
     }
 
-    const handleEdit = () => {
-        checklistItems = checklistItems.map(i =>
-            i.title === modalName
+    const handleEdit = async () => {
+        if (!modalName.trim()) {
+            alert("Name cannot be blank.");
+            return;
+        }
+        
+        checklistItems = checklistItems.map(item =>
+            item.id === editingId
                 ? {
-                    ...i,
+                    ...item,
                     title: modalName,
                     description: modalDescription,
                     dueDate: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
                     group: selectedGroup === '__new__' ? newGroupName : selectedGroup
                 }
-                : i
+                : item
         );
-        saveToLocalStorage();
+
+        try {
+            await saveToLocalStorage();
+            console.log("Item edited and saved successfully.");
+        } catch (error) {
+            console.error("Failed to save edited item:", error);
+        }
+
         defaultModal = false;
+        selectedDate = null;
+        selectedGroup = null;
+        modalName = '';
+        modalDescription = '';
     }
 
     const handleDelete = () => {
@@ -152,6 +170,10 @@
         ];
         saveToLocalStorage();
         defaultModal = false;
+        selectedDate = null;
+        selectedGroup = null;
+        modalName = '';
+        modalDescription = '';
     }
 
     $: grouped = checklistItems.reduce((acc, item) => {
@@ -206,9 +228,17 @@
                         <AccordionItem transitionType={blur} transitionParams={{ duration: 300 }}>
                             {#snippet header()}{group}{/snippet}
                             {#each items as item (item.id)}
-                                <Card class="p-4 sm:p-6 md:p-8 w-full max-w-none mt-4 first:mt-0 hover:cursor-pointer">
+                                <Card class={`p-4 sm:p-6 md:p-8 w-full max-w-none mt-4 first:mt-0 hover:cursor-pointer border-2 ${
+                                    item.checked
+                                        ? '!border-green-500'
+                                        : (item.dueDate && new Date(item.dueDate) < new Date())
+                                            ? '!border-red-500'
+                                            : (item.dueDate && (new Date(item.dueDate) - new Date()) < 3 * 24 * 60 * 60 * 1000)
+                                                ? '!border-orange-500'
+                                                : '!border-gray-700'
+                                }`}>
                                     <!-- svelte-ignore component_name_lowercase -->
-                                    <button type="button" class="flex items-center gap-5 flex-wrap" onclick={(e) => { if(e.currentTarget === e.target) openModalEdit(item); }}>
+                                    <button type="button" class="flex items-center gap-5" onclick={(e) => { if(e.currentTarget === e.target) openModalEdit(item); }}>
                                         <Checkbox
                                             bind:checked={item.checked}
                                             onchange={(e) => {
@@ -220,20 +250,26 @@
                                             }}
                                             class="mb-2 w-12 h-12 text-5xl" 
                                         />
-                                        <h5 class="mb-2 sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white">{item.title}</h5>
+                                        <h5 class="sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white text-left truncate block">
+                                            {item.title} 
+                                            <br class="sm:hidden">
+                                            <span class="sm:hidden text-sm opacity-50 inline-block">
+                                                { formatDate(item.dueDate)}
+                                            </span>
+                                        </h5>
                                         <div class="sm:flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 sm:ml-auto ml-0 hidden">
                                             <span>
                                                 <span
-                                                    class:bg-red-700={new Date(item.dueDate) < new Date() && !item.checked}
-                                                    class:bg-yellow-400={new Date(item.dueDate) >= new Date() && (new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000) && !item.checked}
+                                                    class:bg-red-700={item.dueDate && new Date(item.dueDate) < new Date() && !item.checked}
+                                                    class:bg-orange-700={item.dueDate && new Date(item.dueDate) >= new Date() && (new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000) && !item.checked}
                                                     class:bg-green-700={item.checked}
                                                     class="px-2 py-0.5 rounded text-white"
                                                 >
                                                     {#if item.checked}
                                                         Completed
-                                                    {:else if new Date(item.dueDate) < new Date()}
+                                                    {:else if item.dueDate && new Date(item.dueDate) < new Date()}
                                                         Overdue by {Math.ceil((new Date() - new Date(item.dueDate)) / (1000 * 60 * 60 * 24))} days
-                                                    {:else if new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000}
+                                                    {:else if item.dueDate && new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000}
                                                         Due soon ({formatDate(item.dueDate)})
                                                     {:else}
                                                         Due {formatDate(item.dueDate)}
@@ -243,23 +279,23 @@
                                         </div>
                                     </button>
                                     <hr class="mb-4 border-gray-700 hidden mt-4">
-                                    <div class="sm:hidden flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 sm:ml-auto ml-0 flex">
+                                    <div class="sm:hidden flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 sm:ml-auto ml-0">
                                         <span class="hidden">
                                             <span
-                                                class:bg-red-700={new Date(item.dueDate) < new Date() && !item.checked}
-                                                class:bg-yellow-400={new Date(item.dueDate) >= new Date() && (new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000) && !item.checked}
+                                                class:bg-red-700={item.dueDate && new Date(item.dueDate) < new Date() && !item.checked}
+                                                class:bg-orange-700={item.dueDate && new Date(item.dueDate) >= new Date() && (new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000) && !item.checked}
                                                 class:bg-green-700={item.checked}
                                                 class="px-2 py-0.5 rounded text-white"
                                             >
-                                                    {#if item.checked}
-                                                        Completed
-                                                    {:else if new Date(item.dueDate) < new Date()}
-                                                        Overdue by {Math.ceil((new Date() - new Date(item.dueDate)) / (1000 * 60 * 60 * 24))} days
-                                                    {:else if new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000}
-                                                        Due soon ({formatDate(item.dueDate)})
-                                                    {:else}
-                                                        Due {formatDate(item.dueDate)}
-                                                    {/if}
+                                                {#if item.checked}
+                                                    Completed
+                                                {:else if item.dueDate && new Date(item.dueDate) < new Date()}
+                                                    Overdue by {Math.ceil((new Date() - new Date(item.dueDate)) / (1000 * 60 * 60 * 24))} days
+                                                {:else if item.dueDate && new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000}
+                                                    Due soon ({formatDate(item.dueDate)})
+                                                {:else}
+                                                    Due {formatDate(item.dueDate)}
+                                                {/if}
                                             </span>
                                         </span>
                                     </div>
