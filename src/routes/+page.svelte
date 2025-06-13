@@ -5,6 +5,7 @@
     import { HomeSolid, AdjustmentsVerticalOutline, CirclePlusSolid } from "flowbite-svelte-icons";
     import { blur, fade } from "svelte/transition";
     import { saveDataToKey, getDataByKey, deleteDataByKey } from '$lib/firebase.js';
+    import { pwaInfo } from 'virtual:pwa-info'
 
     let defaultModal = false;
     let checklistItems = [];
@@ -152,7 +153,38 @@
         (acc[item.group] = acc[item.group] || []).push(item);
         return acc;
     }, {});
+
+    // pwa stuff
+
+     
+    onMount(async () => {
+        if (pwaInfo) {
+        const { registerSW } = await import('virtual:pwa-register')
+        registerSW({
+            immediate: true,
+            onRegistered(r) {
+            // uncomment following code if you want check for updates
+            // r && setInterval(() => {
+            //    console.log('Checking for sw update')
+            //    r.update()
+            // }, 20000 /* 20s for testing purposes */)
+            console.log(`SW Registered: ${r}`)
+            },
+            onRegisterError(error) {
+            console.log('SW registration error', error)
+            }
+        })
+        }
+    })
+    
+    $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
+
+
 </script>
+
+<svelte:head>
+    {@html webManifest}
+</svelte:head>
 
 <div class="w-full flex items-center justify-center"> 
     <div class="max-w-[1280px] w-full">
