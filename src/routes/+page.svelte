@@ -109,6 +109,7 @@
         modalDescription = item.description;
         selectedDate = item.dueDate ? new Date(item.dueDate) : null;
         selectedGroup = item.group;
+        newGroupName = '';
     }
 
     function openModalAdd() {
@@ -118,6 +119,7 @@
         modalDescription = '';
         selectedDate = null;
         selectedGroup = '';
+        newGroupName = '';
     }
 
     const handleEdit = async () => {
