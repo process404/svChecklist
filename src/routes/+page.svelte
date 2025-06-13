@@ -74,7 +74,6 @@
                 const localData = JSON.parse(localStorage.getItem("checklistItems")) || [];
                 
                 if (fbData && fbData.checklistItems) {
-                    // Even if localData is empty, use Firestore data.
                     const mergedData = [
                         ...localData,
                         ...fbData.checklistItems.filter(
@@ -82,18 +81,14 @@
                         )
                     ];
                     checklistItems = mergedData;
-                    // Save merged data back to localStorage to persist
                     localStorage.setItem("checklistItems", JSON.stringify(mergedData));
                     console.log("Loaded and merged data for key:", storedKey);
                 } else {
-                    // Document exists? If fbData is null but the key is valid, do not generate a new key.
-                    // Instead, if localData is present, write it to Firestore, otherwise write an empty array.
                     await saveDataToKey({ checklistItems: localData });
                     console.log("No checklist found in Firestore; initializing with localData or empty list.");
                 }
             } catch (e) {
                 console.error("Error loading Firestore data with stored key:", e);
-                // Do not generate a new key here if you plan to share the key; handle the error gracefully.
             }
         } else {
             // Only generate a new key if there’s really no key stored locally.
