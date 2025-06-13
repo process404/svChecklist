@@ -8,9 +8,9 @@
 	let { children } = $props();
 </script>
 
-<!-- <svelte:head>
+<svelte:head>
 	{@html webManifestLink}
-</svelte:head> -->
+</svelte:head>
 
 {#await import('$lib/ReloadPrompt.svelte') then { default: ReloadPrompt}}
   <ReloadPrompt />
