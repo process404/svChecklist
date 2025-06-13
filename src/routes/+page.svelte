@@ -220,7 +220,7 @@
                                             }}
                                             class="mb-2 w-12 h-12 text-5xl" 
                                         />
-                                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.title}</h5>
+                                        <h5 class="mb-2 sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white">{item.title}</h5>
                                         <div class="sm:flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 sm:ml-auto ml-0 hidden">
                                             <span>
                                                 <span
@@ -242,9 +242,9 @@
                                             </span>
                                         </div>
                                     </button>
-                                    <hr class="mb-4 border-gray-700 sm:hidden mt-4">
+                                    <hr class="mb-4 border-gray-700 hidden mt-4">
                                     <div class="sm:hidden flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 sm:ml-auto ml-0 flex">
-                                        <span>
+                                        <span class="hidden">
                                             <span
                                                 class:bg-red-700={new Date(item.dueDate) < new Date() && !item.checked}
                                                 class:bg-yellow-400={new Date(item.dueDate) >= new Date() && (new Date(item.dueDate) - new Date() < 3 * 24 * 60 * 60 * 1000) && !item.checked}
