@@ -4,6 +4,7 @@
     import { HomeSolid } from "flowbite-svelte-icons";
     import { getDataByKey, saveDataToKey, deleteDataByKey } from '$lib/firebase.js';
     import { pwaInfo } from 'virtual:pwa-info';
+    import { browser } from '$app/environment';
     
     let appKey = "";
     let newKeyInput = "";
@@ -91,7 +92,9 @@
 </script>
 
 <svelte:head>
-    {@html webManifest}
+  {#if browser}
+    {@html pwaInfo ? pwaInfo.webManifest.linkTag : ""}
+  {/if}
 </svelte:head>
 
 <main>

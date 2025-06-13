@@ -1,5 +1,9 @@
+
+
 <svelte:head>
+  {#if browser}
     {@html pwaInfo ? pwaInfo.webManifest.linkTag : ""}
+  {/if}
 </svelte:head>
 
 <script>
@@ -9,7 +13,8 @@
     import { HomeSolid, AdjustmentsVerticalOutline, CirclePlusSolid } from "flowbite-svelte-icons";
     import { blur, fade } from "svelte/transition";
     import { saveDataToKey, getDataByKey, deleteDataByKey } from '$lib/firebase.js';
-    import { pwaInfo } from 'virtual:pwa-info'
+    import { browser } from '$app/environment';
+    import { pwaInfo } from 'virtual:pwa-info';
 
     let defaultModal = false;
     let checklistItems = [];
