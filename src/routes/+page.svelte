@@ -181,6 +181,10 @@
 
 </script>
 
+<svelte:head>
+    {@html webManifest}
+</svelte:head>
+
 <main>
 
     <div class="w-full flex items-center justify-center"> 
