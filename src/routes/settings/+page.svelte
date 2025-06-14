@@ -178,6 +178,24 @@
         a.click();
         URL.revokeObjectURL(url);
     }
+
+    async function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                // Example: update localStorage (and update any reactive state if needed)
+                localStorage.setItem("checklistItems", JSON.stringify(imported));
+                alert("Data imported successfully!");
+            } catch (err) {
+                console.error(err);
+                alert("Error importing data. Make sure the file contains valid JSON.");
+            }
+        };
+        reader.readAsText(file);
+    }
 </script>
 
 <svelte:head>
@@ -193,7 +211,7 @@
                     <Label for="appKey" class="mb-2 block">App Key</Label>
                     <Input id="appKey" value={appKey} readonly class="mb-2" />
                     <div class="flex flex-col items-center justify-center mt-8 mb-12">
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${appKey}`} alt="QR Code" class="mb-4 w-64 h-64" />
+                        <img src={ appKey ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${appKey}` : '' } alt="QR Code" class="mb-4 w-64 h-64" />
                         <p class="dark:text-white">Scan this QR code with another device to copy the app key.</p>
                     </div>
                     <Label for="newKey" class="mb-2 block">Change App Key</Label>
