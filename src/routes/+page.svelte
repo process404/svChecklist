@@ -4,8 +4,7 @@
 
 <script>
     import { onMount } from "svelte";
-    import { Button, Label, Input, Checkbox, Datepicker, Dropdown, DropdownItem, Select } from "flowbite-svelte";
-    import { BottomNav, BottomNavItem, Tooltip, Card, Accordion, AccordionItem, Modal } from "flowbite-svelte";
+    import { Button, Label, Input, Checkbox, Datepicker, Select, Textarea, MultiSelect, Modal, BottomNav, BottomNavItem, Tooltip, Card, Accordion, AccordionItem } from "flowbite-svelte";
     import { HomeSolid, AdjustmentsVerticalOutline, CirclePlusSolid } from "flowbite-svelte-icons";
     import { blur, fade } from "svelte/transition";
     import { saveDataToKey, getDataByKey, deleteDataByKey } from '$lib/firebase.js';
@@ -17,7 +16,7 @@
     let modalMode = 'edit';
 
     let selectedDate = null;
-    let selectedGroup = null;
+    let selectedGroup = ""; 
     let newGroupName = '';
     let modalName = '';
     let modalDescription = '';
@@ -160,7 +159,11 @@
         }
 
         defaultModal = false;
-        // reset modal fields…
+        selectedDate = null;
+        selectedGroup = '';
+        modalName = '';
+        modalDescription = '';
+        editingId = null;
     }
 
     const handleDelete = () => {
@@ -200,7 +203,6 @@
     
     $: sortedChecklist = [...checklistItems].sort((a, b) => {
         if(sortBy === "dueDate") {
-            // Handle missing dates
             if (!a.dueDate) return 1;
             if (!b.dueDate) return -1;
             return new Date(a.dueDate) - new Date(b.dueDate);
@@ -248,9 +250,7 @@
         reader.onload = async (e) => {
             try {
                 const parsedData = JSON.parse(e.target.result);
-                // Store the imported data
                 importedData = parsedData;
-                // Open the confirmation modal
                 confirmImportModal = true;
             } catch (err) {
                 console.error(err);
@@ -380,14 +380,19 @@
     </div>
     
     <!-- Modal Content -->
-    <Modal title={modalMode === "edit" ? "Edit Item" : "Add Item"} bind:open={defaultModal} class="max-h-none relative" bodyClass="overflow-y-auto max-h-none relative">
+    <Modal
+        title={modalMode === "edit" ? "Edit Item" : "Add Item"}
+        bind:open={defaultModal}
+        class="max-h-none relative"
+        bodyClass="overflow-y-auto max-h-[80vh] relative"
+    >
         <Label class="space-y-2">
             <span>Name</span>
             <Input type="text" name="Name" required bind:value={modalName} />
         </Label>
         <Label class="space-y-2">
             <span>Description</span>
-            <Input type="text" name="Description" bind:value={modalDescription} />
+            <Textarea rows="4" placeholder="Enter description..." bind:value={modalDescription} />
         </Label>
         <Label class="space-y-2">
             <span>Date</span>
@@ -396,15 +401,15 @@
         <Label class="space-y-2">
             <span>Group</span>
             <Select
-            class="mt-2"
-            items={[
-                ...Array.from(new Set(checklistItems.map(i => i.group))).map(group => ({ value: group, name: group })),
-                { value: "__new__", name: "Add new group..." }
-            ]}
-            bind:value={selectedGroup}
+                class="mt-2"
+                items={[
+                    ...Array.from(new Set(checklistItems.map(i => i.group))).map(group => ({ value: group, name: group })),
+                    { value: "__new__", name: "Add new group..." }
+                ]}
+                bind:value={selectedGroup}
             />
             {#if selectedGroup === '__new__'}
-            <Input type="text" placeholder="New group name" bind:value={newGroupName} />
+                <Input type="text" placeholder="New group name" bind:value={newGroupName} />
             {/if}
         </Label>
         {#if modalMode === 'edit'}

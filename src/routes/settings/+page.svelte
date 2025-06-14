@@ -104,6 +104,22 @@
             await generateNewAppKey();
         }
     });
+
+    let checklistItems = JSON.parse(localStorage.getItem("checklistItems")) || [];
+
+    async function generateNewAppKey() {
+        const newKey = generateRandomHexKey(32);
+        localStorage.setItem("appKey", newKey);
+        appKey = newKey;
+        try {
+            await saveDataToKey({ checklistItems: [] });
+            checklistItems = [];
+            localStorage.setItem("checklistItems", JSON.stringify(checklistItems));
+            console.log("Created document for new key:", newKey);
+        } catch (e) {
+            console.error("Failed to create document for new key:", e);
+        }
+    }
     
     onMount(async () => {
         if (pwaInfo) {
