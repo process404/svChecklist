@@ -295,7 +295,7 @@
                                             class="w-12 h-12 text-5xl p-0" 
                                         />
                                         <!-- svelte-ignore a11y_click_events_have_key_events -->
-                                        <h5 class="sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white text-left truncate block" on:click={openModalEdit(item)}>
+                                        <h5 class="sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white text-left truncate block" onclick={openModalEdit(item)}>
                                             {item.title} 
                                             <br class="sm:hidden">
                                             <span class="sm:hidden text-sm opacity-50 inline-block">
