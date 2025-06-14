@@ -9,7 +9,7 @@
     import { blur, fade } from "svelte/transition";
     import { saveDataToKey, getDataByKey, deleteDataByKey } from '$lib/firebase.js';
     import { browser } from '$app/environment';
-    import { pwaInfo } from 'virtual:pwa-info';
+    import { pwaInfo } from 'virtual:pwa-register';
 
     let defaultModal = false;
     let checklistItems = [];
@@ -76,31 +76,53 @@
         return [year, month.padStart(2, "0"), day.padStart(2, "0")].join("-");
     }
 
+    async function syncData() {
+        try {
+            const fbData = await getDataByKey();
+            const localData = JSON.parse(localStorage.getItem("checklistItems")) || [];
+
+            if (fbData && fbData.checklistItems) {
+                const mergedData = mergeChecklistItems(localData, fbData.checklistItems);
+                checklistItems = mergedData;
+                localStorage.setItem("checklistItems", JSON.stringify(mergedData));
+                console.log("Data synced successfully from Firestore.");
+            } else {
+                await saveDataToKey({ checklistItems: localData });
+                console.log("No checklist found in Firestore; initializing with localData or empty list.");
+            }
+        } catch (e) {
+            console.error("Error syncing data:", e);
+        }
+    }
+
+    function mergeChecklistItems(localData, firestoreData) {
+        const mergedData = [];
+        const localMap = new Map(localData.map(item => [item.id, item]));
+        const firestoreMap = new Map(firestoreData.map(item => [item.id, item]));
+
+        for (const localItem of localData) {
+            const firestoreItem = firestoreMap.get(localItem.id);
+            if (firestoreItem) {
+                mergedData.push(firestoreItem);
+            } else {
+                mergedData.push(localItem);
+            }
+        }
+
+        for (const firestoreItem of firestoreData) {
+            if (!localMap.has(firestoreItem.id)) {
+                mergedData.push(firestoreItem);
+            }
+        }
+
+        return mergedData;
+    }
+
     onMount(async () => {
         const storedKey = localStorage.getItem("appKey");
         if (storedKey) {
             appKey = storedKey;
-            try {
-                const fbData = await getDataByKey();
-                const localData = JSON.parse(localStorage.getItem("checklistItems")) || [];
-                
-                if (fbData && fbData.checklistItems) {
-                    const mergedData = [
-                        ...localData,
-                        ...fbData.checklistItems.filter(
-                            item => !localData.some(localItem => localItem.id === item.id)
-                        )
-                    ];
-                    checklistItems = mergedData;
-                    localStorage.setItem("checklistItems", JSON.stringify(mergedData));
-                    console.log("Loaded and merged data for key:", storedKey);
-                } else {
-                    await saveDataToKey({ checklistItems: localData });
-                    console.log("No checklist found in Firestore; initializing with localData or empty list.");
-                }
-            } catch (e) {
-                console.error("Error loading Firestore data with stored key:", e);
-            }
+            await syncData();
         } else {
             await generateNewAppKey();
         }
@@ -187,14 +209,14 @@
                 description: modalDescription,
                 checked: false,
                 dueDate: selectedDate ? formatLocalDate(selectedDate) : '',
-                group: selectedGroup === '__new__' ? newGroupName : selectedGroup,
+                group: selectedGroup === '__new__' ? newGroupName : (selectedGroup || 'Ungrouped'),
                 pinned: false
             }
         ];
         saveToLocalStorage();
         defaultModal = false;
         selectedDate = null;
-        selectedGroup = null;
+        selectedGroup = '';
         modalName = '';
         modalDescription = '';
     }
