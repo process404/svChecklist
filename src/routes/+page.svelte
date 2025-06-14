@@ -1,7 +1,3 @@
-<svelte:head>
-    {@html webManifest}
-</svelte:head>
-
 <script>
     import { onMount } from "svelte";
     import { Button, Label, Input, Checkbox, Datepicker, Select, Textarea, MultiSelect, Modal, BottomNav, BottomNavItem, Tooltip, Card, Accordion, AccordionItem } from "flowbite-svelte";
@@ -9,7 +5,7 @@
     import { blur, fade } from "svelte/transition";
     import { saveDataToKey, getDataByKey, deleteDataByKey } from '$lib/firebase.js';
     import { browser } from '$app/environment';
-    import { pwaInfo } from 'virtual:pwa-register';
+    import { registerSW } from 'virtual:pwa-register';
 
     let defaultModal = false;
     let checklistItems = [];
@@ -126,6 +122,17 @@
         } else {
             await generateNewAppKey();
         }
+
+        // pwa stuff
+        registerSW({
+            immediate: true,
+            onRegistered(r) {
+                console.log(`SW Registered: ${r}`)
+            },
+            onRegisterError(error) {
+                console.log('SW registration error', error)
+            }
+        });
     });
 
     async function saveToLocalStorage() {
@@ -240,49 +247,12 @@
         return acc;
     }, {});
 
-    // pwa stuff
-
-     
-    onMount(async () => {
-        if (pwaInfo) {
-        const { registerSW } = await import('virtual:pwa-register')
-        registerSW({
-            immediate: true,
-            onRegistered(r) {
-            // uncomment following code if you want check for updates
-            // r && setInterval(() => {
-            //    console.log('Checking for sw update')
-            //    r.update()
-            // }, 20000 /* 20s for testing purposes */)
-            console.log(`SW Registered: ${r}`)
-            },
-            onRegisterError(error) {
-            console.log('SW registration error', error)
-            }
-        })
-        }
-    })
-    
-    $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
-
-    async function importData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const parsedData = JSON.parse(e.target.result);
-                importedData = parsedData;
-                confirmImportModal = true;
-            } catch (err) {
-                console.error(err);
-                alert("Error importing data. Make sure the file contains valid JSON.");
-            }
-        };
-        reader.readAsText(file);
-    }
+    $: webManifest = '';
 </script>
 
+<svelte:head>
+    {@html webManifest}
+</svelte:head>
 
 <main>
     <div class="w-full flex items-center justify-center"> 
@@ -463,19 +433,17 @@
     
     
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <BottomNav position="fixed" navType="application" innerClass="grid-cols-2">
+    <BottomNav position="fixed" innerClass="grid-cols-2">
         <!-- <BottomNavItem btnName="Home" appBtnPosition="left">
             <HomeSolid class="group-hover:text-primary-600 dark:group-hover:text-primary-500 mb-1 h-6 w-6 text-gray-500 dark:text-gray-400" />
         </BottomNavItem>
         <Tooltip arrow={false}>Home</Tooltip> -->
         <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <div type="button" class="flex items-center justify-center" onclick={() => openModalAdd()}>
-            <BottomNavItem btnName="Create new item" appBtnPosition="middle" btnClass="inline-flex items-center justify-center w-10 h-10 font-medium bg-primary-600 rounded-full hover:bg-primary-700 group focus:ring-4 focus:ring-primary-300 focus:outline-hidden dark:focus:ring-primary-800">
-            <CirclePlusSolid class="text-white" />
-            </BottomNavItem>
-            <Tooltip arrow={false}>Create new item</Tooltip>
-        </div>
-        <BottomNavItem btnName="Settings" appBtnPosition="right" href="/settings">
+        <BottomNavItem btnName="Create new item" onclick={() => openModalAdd()}>
+            <CirclePlusSolid class="group-hover:text-primary-600 dark:group-hover:text-primary-500 mb-1 h-6 w-6 text-gray-500 dark:text-gray-400" />
+        </BottomNavItem>
+        <Tooltip arrow={false}>Create new item</Tooltip>
+        <BottomNavItem btnName="Settings" href="/settings">
             <AdjustmentsVerticalOutline class="group-hover:text-primary-600 dark:group-hover:text-primary-500 mb-1 h-6 w-6 text-gray-500 dark:text-gray-400" />
         </BottomNavItem>
         <Tooltip arrow={false}>Settings</Tooltip>

@@ -285,8 +285,8 @@
         </div>
     </Modal>
     
-    <BottomNav position="fixed" navType="application" innerClass="grid-cols-1">
-        <BottomNavItem btnName="Home" appBtnPosition="middle" btnClass="rounded-l-4xl rounded-r-4xl" href="/">
+    <BottomNav position="fixed" innerClass="grid-cols-1">
+        <BottomNavItem btnName="Home" href="/">
             <HomeSolid class="group-hover:text-primary-600 dark:group-hover:text-primary-500 mb-1 h-6 w-6 text-gray-500 dark:text-gray-400" />
         </BottomNavItem>
         <Tooltip arrow={false}>Settings</Tooltip>
