@@ -65,6 +65,14 @@
         return `${ordinal(day)} ${month} ${year}`;
     }
 
+    function formatLocalDate(date) {
+        const d = new Date(date);
+        const month = "" + (d.getMonth() + 1);
+        const day = "" + d.getDate();
+        const year = d.getFullYear();
+        return [year, month.padStart(2, "0"), day.padStart(2, "0")].join("-");
+    }
+
     onMount(async () => {
         const storedKey = localStorage.getItem("appKey");
         if (storedKey) {
@@ -133,7 +141,7 @@
                     ...item,
                     title: modalName,
                     description: modalDescription,
-                    dueDate: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+                    dueDate: selectedDate ? formatLocalDate(selectedDate) : '',
                     group: selectedGroup === '__new__' ? newGroupName : selectedGroup,
                     pinned: item.pinned 
                 }
@@ -171,7 +179,7 @@
                 title: modalName,
                 description: modalDescription,
                 checked: false,
-                dueDate: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+                dueDate: selectedDate ? formatLocalDate(selectedDate) : '',
                 group: selectedGroup === '__new__' ? newGroupName : selectedGroup,
                 pinned: false
             }
