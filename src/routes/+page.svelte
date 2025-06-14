@@ -379,7 +379,6 @@
         </div>
     </div>
     
-    <!-- Modal Content -->
     <Modal
         title={modalMode === "edit" ? "Edit Item" : "Add Item"}
         bind:open={defaultModal}
