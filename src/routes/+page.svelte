@@ -279,7 +279,7 @@
                                             : (item.dueDate && (new Date(item.dueDate) - new Date()) < 3 * 24 * 60 * 60 * 1000)
                                                 ? '!border-orange-500'
                                                 : '!border-gray-700'
-                                }`} onclick={openModalEdit(item)}>
+                                }`} on:click={openModalEdit(item)}>
                                     <!-- svelte-ignore component_name_lowercase -->
                                     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                                     <button type="button" class="flex items-center gap-5" onclick={(e) => { if(e.currentTarget === e.target) openModalEdit(item); }}>
