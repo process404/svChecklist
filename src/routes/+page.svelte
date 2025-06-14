@@ -279,8 +279,9 @@
                                             : (item.dueDate && (new Date(item.dueDate) - new Date()) < 3 * 24 * 60 * 60 * 1000)
                                                 ? '!border-orange-500'
                                                 : '!border-gray-700'
-                                }`}>
+                                }`} onclick={openModalEdit(item)}>
                                     <!-- svelte-ignore component_name_lowercase -->
+                                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                                     <button type="button" class="flex items-center gap-5" onclick={(e) => { if(e.currentTarget === e.target) openModalEdit(item); }}>
                                         <Checkbox
                                             bind:checked={item.checked}
@@ -293,7 +294,8 @@
                                             }}
                                             class="w-12 h-12 text-5xl p-0" 
                                         />
-                                        <h5 class="sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white text-left truncate block">
+                                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                        <h5 class="sm:text-2xl text-lg font-bold tracking-tight text-gray-900 dark:text-white text-left truncate block" onclick={openModalEdit(item)}>
                                             {item.title} 
                                             <br class="sm:hidden">
                                             <span class="sm:hidden text-sm opacity-50 inline-block">
