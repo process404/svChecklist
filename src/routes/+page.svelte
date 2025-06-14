@@ -67,6 +67,7 @@
 
     function formatLocalDate(date) {
         const d = new Date(date);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
         const month = "" + (d.getMonth() + 1);
         const day = "" + d.getDate();
         const year = d.getFullYear();
