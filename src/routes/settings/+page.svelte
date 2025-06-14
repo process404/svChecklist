@@ -9,6 +9,8 @@
     let newKeyInput = "";
     let error = "";
     let warningModal = false;
+    let confirmImportModal = false;
+    let importedData = null;
 
     function generateRandomHexKey(bytesCount) {
         const randomBytes = new Uint8Array(bytesCount);
@@ -185,16 +187,30 @@
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                const imported = JSON.parse(e.target.result);
-                // Example: update localStorage (and update any reactive state if needed)
-                localStorage.setItem("checklistItems", JSON.stringify(imported));
-                alert("Data imported successfully!");
+                const parsedData = JSON.parse(e.target.result);
+                importedData = parsedData;
+                confirmImportModal = true;
             } catch (err) {
                 console.error(err);
                 alert("Error importing data. Make sure the file contains valid JSON.");
             }
         };
         reader.readAsText(file);
+    }
+
+    async function confirmImport() {
+        if (importedData) {
+            try {
+                localStorage.setItem("checklistItems", JSON.stringify(importedData));
+                await saveDataToKey({ checklistItems: importedData });
+                importedData = null;
+                confirmImportModal = false;
+                alert("Data imported and synced to Firebase successfully!");
+            } catch (err) {
+                console.error("Error saving to Firebase:", err);
+                alert("Error saving data to Firebase.");
+            }
+        }
     }
 </script>
 
@@ -260,6 +276,16 @@
         <Tooltip arrow={false}>Settings</Tooltip>
     </BottomNav>
 
-    
+    <Modal title="Confirm Import" bind:open={confirmImportModal} class="max-h-none relative" bodyClass="overflow-y-auto max-h-none relative">
+        <div class="p-6">
+            <p class="text-gray-700 dark:text-gray-300">
+                Are you sure you want to import this data? This will overwrite your current checklist.
+            </p>
+        </div>
+        <div class="flex justify-end p-4 gap-4">
+            <Button onclick={() => { confirmImportModal = false; importedData = null; }} color="light">Cancel</Button>
+            <Button onclick={confirmImport} color="primary">Confirm Import</Button>
+        </div>
+    </Modal>
 
 </main>

@@ -25,6 +25,9 @@
     let appKey = "";
     let editingId = null; 
     
+    let confirmImportModal = false;
+    let importedData = null;
+
     function generateRandomHexKey(bytesCount = 32) {
         const randomBytes = new Uint8Array(bytesCount);
         crypto.getRandomValues(randomBytes);
@@ -238,6 +241,24 @@
     
     $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
 
+    async function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const parsedData = JSON.parse(e.target.result);
+                // Store the imported data
+                importedData = parsedData;
+                // Open the confirmation modal
+                confirmImportModal = true;
+            } catch (err) {
+                console.error(err);
+                alert("Error importing data. Make sure the file contains valid JSON.");
+            }
+        };
+        reader.readAsText(file);
+    }
 </script>
 
 
