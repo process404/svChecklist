@@ -6,7 +6,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyCtffP-iNYgkLOZajszJivlXYDMPAvxC1U",
     authDomain: "checklistsystem-19096.firebaseapp.com",
     projectId: "checklistsystem-19096",
-    storageBucket: "checklistsystem-19096.firebasestorage.app",
+    storageBucket: "checklistsystem-19096.appspot.com",
     messagingSenderId: "478291925766",
     appId: "1:478291925766:web:fb7e282d77f96296459c87",
     measurementId: "G-3XLL2RSVYC"
@@ -33,30 +33,49 @@ export { getFirebaseApp };
 export async function saveDataToKey(data, passedKey = "") {
     const key = passedKey || localStorage.getItem("appKey");
     if (!key) throw new Error("No app key found in localStorage.");
+
     const db = getFirestore(getFirebaseApp());
     const docRef = doc(db, "apps", key);
-    await setDoc(docRef, { ...data, appKey: key }, { merge: true });
+
+    const dataToSave = { ...data, appKey: key };
+
+    try {
+        await setDoc(docRef, dataToSave, { merge: true });
+        console.log("Document successfully written!");
+    } catch (error) {
+        console.error("Error writing document: ", error);
+        throw error;
+    }
 }
-  
+
 export async function getDataByKey(passedKey = "") {
     const key = passedKey || localStorage.getItem("appKey");
     if (!key) throw new Error("No app key found in localStorage.");
+
     const db = getFirestore(getFirebaseApp());
     const docRef = doc(db, "apps", key);
+
     try {
         const snapshot = await getDoc(docRef);
         if (!snapshot.exists()) return null;
         return snapshot.data();
-    } catch(e) {
+    } catch (e) {
         console.error("Error reading document for key", key, e);
-        return null; 
+        return null;
     }
 }
 
 export async function deleteDataByKey(passedKey = "") {
     const key = passedKey || localStorage.getItem("appKey");
     if (!key) throw new Error("No app key found in localStorage.");
+
     const db = getFirestore(getFirebaseApp());
     const docRef = doc(db, "apps", key);
-    await deleteDoc(docRef);
+
+    try {
+        await deleteDoc(docRef);
+    } catch (e) {
+        console.error("Error deleting document for key", key, e);
+        throw e;
+    }
 }

@@ -166,8 +166,8 @@
             alert("Name cannot be blank.");
             return;
         }
-        
-        checklistItems = checklistItems.map(item =>
+
+        const updatedChecklistItems = checklistItems.map(item =>
             item.id === editingId
                 ? {
                     ...item,
@@ -175,12 +175,13 @@
                     description: modalDescription,
                     dueDate: selectedDate ? formatLocalDate(selectedDate) : '',
                     group: selectedGroup === '__new__' ? newGroupName : selectedGroup,
-                    pinned: item.pinned 
+                    pinned: item.pinned
                 }
                 : item
         );
 
         try {
+            checklistItems = updatedChecklistItems;
             await saveToLocalStorage();
             console.log("Item edited and saved successfully.");
         } catch (error) {
@@ -193,7 +194,7 @@
         modalName = '';
         modalDescription = '';
         editingId = null;
-    }
+    };
 
     const handleDelete = () => {
         if (confirm(`Are you sure you want to delete "${modalName}"?`)) {
