@@ -40,6 +40,7 @@
             checklistItems = [];
             localStorage.setItem("checklistItems", JSON.stringify(checklistItems));
             console.log("Created document for new key:", newKey);
+            location.reload();
         } catch (e) {
             console.error("Failed to create document for new key:", e);
         }
@@ -85,6 +86,7 @@
             } else {
                 await saveDataToKey({ checklistItems: localData });
                 console.log("No checklist found in Firestore; initializing with localData or empty list.");
+                location.reload();
             }
         } catch (e) {
             console.error("Error syncing data:", e);
@@ -138,6 +140,7 @@
     async function saveToLocalStorage() {
         localStorage.setItem("checklistItems", JSON.stringify(checklistItems));
         await saveDataToKey({ checklistItems });
+        location.reload();
     }
 
     function openModalEdit(item) {
