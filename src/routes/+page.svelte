@@ -140,6 +140,7 @@
     async function saveToLocalStorage() {
         localStorage.setItem("checklistItems", JSON.stringify(checklistItems));
         await saveDataToKey({ checklistItems });
+        defaultModal = false;
         location.reload();
     }
 
